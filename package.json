@@ -1,0 +1,22 @@
+{
+  "name": "socketio---pi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^0.8.0",
+    "axios": "^0.26.1",
+    "cors": "^2.8.5",
+    "express": "^4.17.3",
+    "express-jwt": "^6.1.1",
+    "jwks-rsa": "^2.0.5",
+    "nodemon": "^2.0.15",
+    "socket.io": "^4.4.1"
+  }
+}
