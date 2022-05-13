@@ -31,18 +31,18 @@ const jwtCheck = jwt({
 });
 
 const jwtUser = async (req, res, next) => {
-	const response = await axios.get(req.user.aud[1], { headers: { 'Authorization': req.headers.authorization } });
-	req.user = response.data.email;
+	//const response = await axios.get(req.user.aud[1], { headers: { 'Authorization': req.headers.authorization } });
+	req.user = "amal";
 	next()
 };
 
 app.use(cors())
-app.use(jwtCheck);
+//app.use(jwtCheck);
 app.use(jwtUser);
 
 const wrap = middleware => (socket, next) => middleware(socket.request, {}, next);
 
-io.use(wrap(jwtCheck));
+//io.use(wrap(jwtCheck));
 io.use(wrap(jwtUser));
 
 app.get('/api/external', function (req, res) {
@@ -61,6 +61,30 @@ app.post('/api/v1/calendar', function (req, res) {
 			"oussamabouzekraoui01@gmail.com"
 		]
 	})
+})
+
+app.put('/api/v1/calendar/something/:id', function (req, res) {
+	res.json({
+    "summary":"Testing",
+    "location":"Rabat",
+    "description":"Testing the put method",
+    "participant":[
+        "oussamabouzekraoui01@gmail.com",
+        "oussamabouzekraoui@student.emi.ac.ma"
+    ]
+  })
+})
+
+app.delete('/api/v1/calendar/something/:id', function (req, res) {
+	res.json({
+		"summary":"Testing",
+		"location":"Rabat",
+		"description":"Testing the delete method",
+		"participant":[
+			"oussamabouzekraoui01@gmail.com",
+			"oussamabouzekraoui@student.emi.ac.ma"
+		]
+	  })
 })
 
 app.get('/api/v1/calendar/:start/:end', (req, res) => {
@@ -134,6 +158,7 @@ const handleAddEventRequest = async (info) => {
 	const startTime = await formatDate(info.startTime);
 	const endTime = await formatDate(info.endTime);
 	return {
+		id: info.id,
 		title: info.title,
 		description: info.description,
 		startTime,
@@ -145,13 +170,13 @@ io.on('connection', async (socket) => {
 	console.log('a user connected');
 	socket.on('message', async (message) => {
 		console.log(`message ${message} received from ${socket.request.user} with id ${socket.id}`);
-		const response = await send(message);
+		const response = await send(socket.request.user,message);
 		socket.emit("reply", response)
 	})
 	socket.on('add_event', async (message) => {
 		const info = await handleAddEventRequest(message)
 		try {
-			const host = " http://b50e-105-67-1-1.ngrok.io"
+			const host = "http://localhost:5034"
 			const finalReq = await axios.post(`${host}/api/v1/calendar`, {
 				summary: info.title,
 				location: "Rabat",
@@ -161,6 +186,40 @@ io.on('connection', async (socket) => {
 				participant: ["test@test.com"]
 			})
 			socket.emit("reply", [{ text: "event added successfully" }])
+		} catch (error) {
+			socket.emit("error", error)
+		}
+	})
+	socket.on('modify_event', async (message) => {
+		const info = await handleAddEventRequest(message)
+		try {
+			const host = "http://localhost:5034"
+			const finalReq = await axios.put(`${host}/api/v1/calendar/something/${info.id}`, {
+				summary: info.title,
+				location: "Rabat",
+				description: info.description,
+				start: info.startTime,
+				end: info.endTime,
+				participant: ["test@test.com"]
+			})
+			socket.emit("reply", [{ text: "event modified successfully" }])
+		} catch (error) {
+			socket.emit("error", error)
+		}
+	})
+	socket.on('delete_event', async (message) => {
+		const info = await handleAddEventRequest(message)
+		try {
+			const host = "http://localhost:5034"
+			const finalReq = await axios.delete(`${host}/api/v1/calendar/something/${info.id}`, {
+				summary: info.title,
+				location: "Rabat",
+				description: info.description,
+				start: info.startTime,
+				end: info.endTime,
+				participant: ["test@test.com"]
+			})
+			socket.emit("reply", [{ text: "event deleted successfully" }])
 		} catch (error) {
 			socket.emit("error", error)
 		}
