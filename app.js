@@ -18,6 +18,8 @@ const io = new Server(server, {
 	}
 });
 
+const { addTask, modifyTask } = require("./operations/tasks")
+
 const jwtCheck = jwt({
 	secret: jwks.expressJwtSecret({
 		cache: true,

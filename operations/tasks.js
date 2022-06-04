@@ -20,6 +20,24 @@ const addTask = async ({ title, description, startTime, endTime, participants })
 	}
 }
 
-const deleteTask = async () => {
+const modifyTask = async ({ title, description, startTime, endTime, participants }) => {
+	try {
+		// const startTimeISO = await formatDate(startTime)
+		// const endTimeISO = await formatDate(endTime)
+		const host = "http://b50e-105-67-1-1.ngrok.io"
+		const res = await axios.put(`${host}/api/v1/calendar/${info.id}`, {
+			summary: info.title,
+			location: info.location,
+			description: info.description,
+			participant: info.participant
+		})
 
+	} catch (error) {
+		return {}
+	}
+}
+
+module.exports={
+	addTask,
+	modifyTask
 }
