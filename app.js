@@ -14,10 +14,12 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
 	cors: {
-		origin: "http://localhost:3000",
+		origin: "*",
 		methods: ["GET", "POST", "PUT", "DELETE"]
 	}
 });
+
+const { addTask, modifyTask } = require("./operations/tasks")
 
 const jwtCheck = jwt({
 	secret: jwks.expressJwtSecret({
@@ -32,104 +34,59 @@ const jwtCheck = jwt({
 });
 
 const jwtUser = async (req, res, next) => {
-	const response = await axios.get(req.user.aud[1], { headers: { 'Authorization': req.headers.authorization } });
-	req.user = response.data.email;
+	//const response = await axios.get(req.user.aud[1], { headers: { 'Authorization': req.headers.authorization } });
+	req.user = "amal";
 	next()
 };
 
 app.use(cors())
-app.use(jwtCheck);
+//app.use(jwtCheck);
 app.use(jwtUser);
 
 const wrap = middleware => (socket, next) => middleware(socket.request, {}, next);
 
-io.use(wrap(jwtCheck));
+//io.use(wrap(jwtCheck));
 io.use(wrap(jwtUser));
 
 app.get('/api/external', function (req, res) {
 	res.json(`You are ${req.user}`);
 });
 
-app.post('/api/v1/calendar', function (req, res) {
-	res.json({
-		"summary": "Testing",
-		"location": "Rabat",
-		"description": "Testing the post method",
-		"start": "2022-04-22T18:14:00+00:00",
-		"end": "2022-04-22T20:15:00+00:00",
-		"participant": [
-			"oussamabouzekraoui01@gmail.com",
-			"oussamabouzekraoui01@gmail.com"
-		]
-	})
+app.put('/api/v1/calendar/:id', function (req, res) {
+	res.json(
+		{
+			"summary": "Testing put",
+			"location": "Tanger",
+			"description": "Testing the put method",
+			"participant": [
+				"amalderouich00@gmail.com"
+			]
+		}
+	)
 })
 
-app.get('/api/v1/calendar/:start/:end', (req, res) => {
-	res.json([
-		{
-			"attendees": [
-				{
-					"email": "oussamabouzekraoui01@gmail.com",
-					"organizer": true,
-					"responseStatus": "needsAction",
-					"self": true
-				},
-				{
-					"email": "oussamabouzekraoui@student.emi.ac.ma",
-					"responseStatus": "needsAction"
-				}
-			],
-			"created": {
-				"value": 1648408504000,
-				"dateOnly": false,
-				"timeZoneShift": 0
-			},
-			"creator": {
-				"email": "oussamabouzekraoui01@gmail.com",
-				"self": true
-			},
-			"description": "Testing the put method",
-			"end": {
-				"dateTime": {
-					"value": 1648335600000,
-					"dateOnly": false,
-					"timeZoneShift": 60
-				},
-				"timeZone": "Africa/Casablanca"
-			},
-			"etag": "\"3296817316392000\"",
-			"htmlLink": "https://www.google.com/calendar/event?eid=YWZmbDlqcmpyMWZsOHFxMmhvdWxndG5udjggb3Vzc2FtYWJvdXpla3Jhb3VpMDFAbQ",
-			"iCalUID": "affl9jrjr1fl8qq2houlgtnnv8@google.com",
-			"id": "affl9jrjr1fl8qq2houlgtnnv8",
-			"kind": "calendar#event",
-			"location": "Rabat",
-			"organizer": {
-				"email": "oussamabouzekraoui01@gmail.com",
-				"self": true
-			},
-			"reminders": {
-				"useDefault": true
-			},
-			"sequence": 0,
-			"start": {
-				"dateTime": {
-					"value": 1648332000000,
-					"dateOnly": false,
-					"timeZoneShift": 60
-				},
-				"timeZone": "Africa/Casablanca"
-			},
-			"status": "confirmed",
-			"summary": "Testing",
-			"updated": {
-				"value": 1648408658196,
-				"dateOnly": false,
-				"timeZoneShift": 0
-			},
-			"eventType": "default"
-		}
-	])
-})
+const handleAddEventRequest = async (info) => {
+	const startTime = await formatDate(info.startTime);
+	const endTime = await formatDate(info.endTime);
+	return {
+		summary: info.summary,
+		location: info.location,
+		description: info.description,
+		startTime,
+		endTime,
+		participant: info.participant
+	}
+}
+
+const handleModifyEventRequest = async (info) => {
+	return {
+		id: info.id,
+		summary: info.summary,
+		location: info.location,
+		description: info.description,
+		participant: info.participant
+	}
+}
 
 io.on('connection', async (socket) => {
 	console.log('a user connected');
@@ -137,6 +94,38 @@ io.on('connection', async (socket) => {
 		console.log(`message ${message} received from ${socket.request.user} with id ${socket.id}`);
 		const response = await send(socket.request.user, message);
 		socket.emit("reply", response)
+	})
+	socket.on('add_event', async (message) => {
+		const info = await handleAddEventRequest(message)
+		try {
+			const host = "http://localhost:8081"
+			const finalReq = await axios.post(`${host}/api/v1/calendar`, {
+				summary: info.title,
+				location: info.location,
+				description: info.description,
+				start: info.startTime,
+				end: info.endTime,
+				participant: info.participant
+			})
+			socket.emit("reply", [{ text: "event added successfully" }])
+		} catch (error) {
+			socket.emit("error", error)
+		}
+	})
+	socket.on('modify_event', async (message) => {
+		const info = await handleModifyEventRequest(message)
+		try {
+			const host = "http://localhost:8081"
+			const finalReq = await axios.put(`${host}/api/v1/calendar/${info.id}`, {
+				summary: info.title,
+				location: info.location,
+				description: info.description,
+				participant: info.participant
+			})
+			socket.emit("reply", [{ text: "event modified successfully" }])
+		} catch (error) {
+			socket.emit("error", error)
+		}
 	})
 	socket.on('disconnect', () => {
 		console.log("user disconnected")

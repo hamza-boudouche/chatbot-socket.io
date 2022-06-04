@@ -3,6 +3,7 @@ const qs = require('qs');
 
 
 const formatDate = async (datTime) => {
+	console.log(datTime)
 	const reqStartTime = await axios.post("http://0.0.0.0:8000/parse", qs.stringify({
 		'locale': 'en_GB',
 		'text': datTime
