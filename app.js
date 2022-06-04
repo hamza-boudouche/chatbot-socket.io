@@ -88,6 +88,14 @@ const handleModifyEventRequest = async (info) => {
 	}
 }
 
+const handleDeleteEventRequest = async (info) => {
+	/* const startTime = await formatDate(info.startTime);
+	const endTime = await formatDate(info.endTime); */
+	return {
+		id:info.id
+	}
+}
+
 io.on('connection', async (socket) => {
 	console.log('a user connected');
 	socket.on('message', async (message) => {
@@ -123,6 +131,16 @@ io.on('connection', async (socket) => {
 				participant: info.participant
 			})
 			socket.emit("reply", [{ text: "event modified successfully" }])
+		} catch (error) {
+			socket.emit("error", error)
+		}
+	})
+	socket.on('delete_event', async (message) => {
+		const info = await handleDeleteEventRequest(message)
+		try {
+			const host = "http://localhost:8081"
+			const finalReq = await axios.delete(`${host}/api/v1/calendar/${info.id}`)
+			socket.emit("reply", [{ text: "event deleted successfully" }])
 		} catch (error) {
 			socket.emit("error", error)
 		}
