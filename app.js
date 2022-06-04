@@ -8,6 +8,7 @@ const axios = require('axios');
 const qs = require('qs');
 const { formatDate } = require("./format/dates")
 const { send } = require("./communicate/rasa")
+const { addEvent, deleteEvent, getEvent } = require('./operations/events')
 
 const app = express();
 const server = http.createServer(app);
@@ -130,40 +131,12 @@ app.get('/api/v1/calendar/:start/:end', (req, res) => {
 	])
 })
 
-const handleAddEventRequest = async (info) => {
-	const startTime = await formatDate(info.startTime);
-	const endTime = await formatDate(info.endTime);
-	return {
-		title: info.title,
-		description: info.description,
-		startTime,
-		endTime
-	}
-}
-
 io.on('connection', async (socket) => {
 	console.log('a user connected');
 	socket.on('message', async (message) => {
 		console.log(`message ${message} received from ${socket.request.user} with id ${socket.id}`);
-		const response = await send(message);
+		const response = await send(socket.request.user, message);
 		socket.emit("reply", response)
-	})
-	socket.on('add_event', async (message) => {
-		const info = await handleAddEventRequest(message)
-		try {
-			const host = " http://b50e-105-67-1-1.ngrok.io"
-			const finalReq = await axios.post(`${host}/api/v1/calendar`, {
-				summary: info.title,
-				location: "Rabat",
-				description: info.description,
-				start: info.startTime,
-				end: info.endTime,
-				participant: ["test@test.com"]
-			})
-			socket.emit("reply", [{ text: "event added successfully" }])
-		} catch (error) {
-			socket.emit("error", error)
-		}
 	})
 	socket.on('disconnect', () => {
 		console.log("user disconnected")
