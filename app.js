@@ -96,6 +96,22 @@ const handleDeleteEventRequest = async (info) => {
 	}
 }
 
+const handleTrelloEventRequest = async (info) => {
+	/* const startTime = await formatDate(info.startTime);
+	const endTime = await formatDate(info.endTime); */
+	return {
+		name:info.name,
+		desc:info.desc,
+		listId:info.listId
+	}
+}
+
+const handleTrelloAssignedRequest = async (info) => {
+	return {
+		idMember:info.idMember
+	}
+}
+
 io.on('connection', async (socket) => {
 	console.log('a user connected');
 	socket.on('message', async (message) => {
@@ -141,6 +157,31 @@ io.on('connection', async (socket) => {
 			const host = "http://localhost:8081"
 			const finalReq = await axios.delete(`${host}/api/v1/calendar/${info.id}`)
 			socket.emit("reply", [{ text: "event deleted successfully" }])
+		} catch (error) {
+			socket.emit("error", error)
+		}
+	})
+	socket.on('addCard', async (message) => {
+		const info = await handleTrelloEventRequest(message)
+		try {
+		
+			const finalReq = axios.post(`http://localhost:8082/v2/trello/addcards/${info.listId}`, {
+				name:info.name,
+				desc:info.desc
+			
+			})
+			socket.emit("reply", [{ text: "Card added successfully" }])
+		} catch (error) {
+			socket.emit("error", error)
+		}
+	})
+	socket.on('getAssignedTasks', async (message) => {
+		const info = await handleTrelloAssignedRequest(message) 
+		try {
+			const finalReq = await axios.get(`http://localhost:8082/v2/trello/assignedTasks/${info.idMember}`, {	
+			})
+			socket.emit("reply", [{ ...finalReq.data }])
+			console.log(finalReq.data)
 		} catch (error) {
 			socket.emit("error", error)
 		}
