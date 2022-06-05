@@ -79,11 +79,15 @@ const handleAddEventRequest = async (info) => {
 }
 
 const handleModifyEventRequest = async (info) => {
+	const startTime = await formatDate(info.start);
+	const endTime = await formatDate(info.end);
 	return {
 		id: info.id,
 		summary: info.summary,
 		location: info.location,
 		description: info.description,
+		start : info.start,
+		end : info.end,
 		participant: info.participant
 	}
 }
@@ -201,10 +205,12 @@ io.on('connection', async (socket) => {
 		const info = await handleModifyEventRequest(message)
 		try {
 			const host = "http://localhost:8081"
-			const finalReq = await axios.put(`${host}/api/v1/calendar/${info.id}`, {
+			const finalReq = await  axios.put(`${host}/api/v1/calendar/${info.id}`, {
 				summary: info.title,
 				location: info.location,
 				description: info.description,
+				start: info.start,
+				end: info.end,
 				participant: info.participant
 			})
 			socket.emit("reply", [{ text: "event modified successfully" }])
