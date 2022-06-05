@@ -232,7 +232,7 @@ io.on('connection', async (socket) => {
 		const info = await handleTrelloEventRequest(message)
 		try {
 		
-			const finalReq = axios.post(`http://localhost:8082/v2/trello/addcards/${info.listId}`, {
+			const finalReq = axios.post(`http://localhost:8081/v2/trello/addcards/${info.listId}`, {
 				name:info.name,
 				desc:info.desc
 			
@@ -245,7 +245,7 @@ io.on('connection', async (socket) => {
 	socket.on('modify_card', async (message) => {
 		const info = await handleModifyCardRequest(message)
 		try {
-			const host = "http://localhost:8082"
+			const host = "http://localhost:8081"
 			const finalReq = await axios.put(`${host}/v2/trello/updateCard/${info.id}`, {
 				id: info.id,
 				name: info.name,
@@ -280,7 +280,7 @@ io.on('connection', async (socket) => {
 	socket.on('delete_card', async (message) => {
 		const info = await handleDeleteCardRequest(message)
 		try {
-			const host = "http://localhost:8082"
+			const host = "http://localhost:8081"
 			const finalReq = await axios.delete(`${host}/v2/trello/deletecard/${info.id}`, {
 				id: info.id
 			})
@@ -292,7 +292,7 @@ io.on('connection', async (socket) => {
 	socket.on('getAssignedTasks', async (message) => {
 		const info = await handleTrelloAssignedRequest(message) 
 		try {
-			const finalReq = await axios.get(`http://localhost:8082/v2/trello/assignedTasks/${info.idMember}`, {	
+			const finalReq = await axios.get(`http://localhost:8081/v2/trello/assignedTasks/${info.idMember}`, {	
 			})
 			socket.emit("reply", [{ ...finalReq.data }])
 			console.log(finalReq.data)
