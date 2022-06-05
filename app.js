@@ -112,6 +112,67 @@ const handleTrelloAssignedRequest = async (info) => {
 	}
 }
 
+const handleAddCardRequest = async (info) => {
+	return {
+		name: info.name,
+		idList: info.idList,
+		desc: info.desc,
+		url: info.url,
+		due: info.due,
+		dueComplete: info.dueComplete,
+		idMembers: info.idMembers,
+		labels: info.labels,
+		badges: info.badges,
+		checkItemStates: info.checkItemStates,
+		closed: info.closed,
+		dateLastActivity: info.dateLastActivity,
+		idBoard: info.idBoard,
+		idChecklists: info.idChecklists,
+		idMembersVoted: info.idMembersVoted,
+		idShort: info.idShort,
+		idAttachmentCover: info.idAttachmentCover,
+		manualCoverAttachment: info.manualCoverAttachment,
+		pos: info.pos,
+		shortLink: info.shortLink,
+		shortUrl: info.shortUrl,
+		subscribed: info.subscribed
+	}
+}
+
+const handleModifyCardRequest = async (info) => {
+	return {
+		id: info.id,
+		name: info.name,
+		idList: info.idList,
+		desc: info.desc,
+		url: info.url,
+		due: info.due,
+		dueComplete: info.dueComplete,
+		idMembers: info.idMembers,
+		labels: info.labels,
+		badges: info.badges,
+		checkItemStates: info.checkItemStates,
+		closed: info.closed,
+		dateLastActivity: info.dateLastActivity,
+		idBoard: info.idBoard,
+		idChecklists: info.idChecklists,
+		idMembersVoted: info.idMembersVoted,
+		idShort: info.idShort,
+		idAttachmentCover: info.idAttachmentCover,
+		manualCoverAttachment: info.manualCoverAttachment,
+		pos: info.pos,
+		shortLink: info.shortLink,
+		shortUrl: info.shortUrl,
+		subscribed: info.subscribed
+	}
+}
+
+const handleDeleteCardRequest = async (info) => {
+	return {
+		id: info.id,
+	}
+}
+
 io.on('connection', async (socket) => {
 	console.log('a user connected');
 	socket.on('message', async (message) => {
@@ -171,6 +232,53 @@ io.on('connection', async (socket) => {
 			
 			})
 			socket.emit("reply", [{ text: "Card added successfully" }])
+		} catch (error) {
+			socket.emit("error", error)
+		}
+	})
+	socket.on('modify_card', async (message) => {
+		const info = await handleModifyCardRequest(message)
+		try {
+			const host = "http://localhost:8082"
+			const finalReq = await axios.put(`${host}/v2/trello/updateCard/${info.id}`, {
+				id: info.id,
+				name: info.name,
+				idList: info.idList,
+				desc: info.desc,
+				url: info.url,
+				due: info.due,
+				dueComplete: info.dueComplete,
+				idMembers: info.idMembers,
+				labels: info.labels,
+				badges: info.badges,
+				checkItemStates: info.checkItemStates,
+				closed: info.closed,
+				dateLastActivity: info.dateLastActivity,
+				idBoard: info.idBoard,
+				idChecklists: info.idChecklists,
+				idMembersVoted: info.idMembersVoted,
+				idShort: info.idShort,
+				idAttachmentCover: info.idAttachmentCover,
+				manualCoverAttachment: info.manualCoverAttachment,
+				pos: info.pos,
+				shortLink: info.shortLink,
+				shortUrl: info.shortUrl,
+				subscribed: info.subscribed
+			})
+			socket.emit("reply", [{ text: "card modified successfully" }])
+		} catch (error) {
+			socket.emit("error", error)
+		}
+	})
+
+	socket.on('delete_card', async (message) => {
+		const info = await handleDeleteCardRequest(message)
+		try {
+			const host = "http://localhost:8082"
+			const finalReq = await axios.delete(`${host}/v2/trello/deletecard/${info.id}`, {
+				id: info.id
+			})
+			socket.emit("reply", [{ text: "card deleted successfully" }])
 		} catch (error) {
 			socket.emit("error", error)
 		}
