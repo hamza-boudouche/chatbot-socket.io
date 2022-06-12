@@ -19,7 +19,7 @@ const io = new Server(server, {
 	}
 });
 
-const host = "https://eccc-102-96-76-153.ngrok.io"
+const host = "https://af3a-41-92-125-87.ngrok.io"
 
 const { addTask, modifyTask } = require("./operations/tasks")
 
@@ -75,6 +75,75 @@ app.get("/events/:startDate/:endDate", async (req, res) => {
 	console.log(url)
 	const resp = await axios.get(url)
 	res.json(resp.data)
+})
+
+app.post("/trello/addcards/:listId", async (req, res) => {
+	// const info = req.body;
+	// const url = `${host}/api/v1/trello/addcards/${req.params.listId}`
+	// const resp = await axios.post(url, info)
+	// res.json(resp.data)
+	res.json({ ok: true })
+})
+
+app.delete("/trello/deletecard/:cardId", async (req, res) => {
+	// const url = `${host}/api/v1/trello/deletecard/${req.params.cardId}`
+	// const resp = await axios.delete(url)
+	// res.json(resp.data)
+	res.json({ ok: true })
+})
+
+app.get("/trello/alllists", async (req, res) => {
+	// const url = `${host}/api/v1/trello/alllists`
+	// const resp = await axios.get(url)
+	// res.json(resp.data)
+	console.log("call")
+	res.json(
+		[
+			{
+				"id": "623f95574962f689d267ade3",
+				"name": "Test ajout Card",
+				"cards": [
+					{
+						"id": "1",
+						"name": "Test ajout Card",
+						"desc": "this is a desc"
+					},
+					{
+						"id": "2",
+						"name": "Test ajout Card",
+						"desc": "this is a desc"
+					},
+					{
+						"id": "3",
+						"name": "Test ajout Card",
+						"desc": "this is a desc"
+					},
+				],
+				"closed": false,
+				"idBoard": "623f95574962f689d267ade2",
+				"pos": 16384,
+				"subscribed": false
+			},
+			{
+				"id": "623f95574962f689d267ade4",
+				"name": "Doing",
+				"cards": [],
+				"closed": false,
+				"idBoard": "623f95574962f689d267ade2",
+				"pos": 32768,
+				"subscribed": false
+			},
+			{
+				"id": "623f95574962f689d267ade5",
+				"name": "Done",
+				"cards": [],
+				"closed": false,
+				"idBoard": "623f95574962f689d267ade2",
+				"pos": 49152,
+				"subscribed": false
+			}
+		]
+	)
 })
 
 const handleAddEventRequest = async (info) => {
